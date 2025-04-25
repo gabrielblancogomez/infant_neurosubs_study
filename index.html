@@ -1,206 +1,62 @@
-
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>EEG Cluster Analysis Dashboard</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 0;
-                    padding: 20px;
-                    background-color: #f5f9fc;
-                    color: #333;
-                }
-                .container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                }
-                .header {
-                    text-align: center;
-                    margin-bottom: 30px;
-                    background-color: #184e77;
-                    color: white;
-                    padding: 20px;
-                    border-radius: 8px;
-                }
-                .viz-section {
-                    background: white;
-                    padding: 20px;
-                    margin-bottom: 30px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                }
-                h1 {
-                    margin: 0;
-                }
-                h2 {
-                    color: #184e77;
-                    border-bottom: 2px solid #34a0a4;
-                    padding-bottom: 10px;
-                }
-                .row {
-                    display: flex;
-                    flex-wrap: wrap;
-                    margin: 0 -15px;
-                }
-                .col {
-                    flex: 1;
-                    padding: 0 15px;
-                    min-width: 300px;
-                }
-                img {
-                    max-width: 100%;
-                    height: auto;
-                    display: block;
-                    margin: 0 auto;
-                    border: 1px solid #eee;
-                }
-                .tabs {
-                    display: flex;
-                    border-bottom: 1px solid #ddd;
-                    margin-bottom: 20px;
-                }
-                .tab {
-                    padding: 10px 20px;
-                    cursor: pointer;
-                    background: #f1f8f8;
-                    border: 1px solid #ddd;
-                    border-bottom: none;
-                    border-radius: 5px 5px 0 0;
-                    margin-right: 5px;
-                }
-                .tab.active {
-                    background: #184e77;
-                    color: white;
-                    border-color: #184e77;
-                }
-                .tab-content {
-                    display: none;
-                }
-                .tab-content.active {
-                    display: block;
-                }
-                .description {
-                    margin-bottom: 20px;
-                    line-height: 1.6;
-                }
-                footer {
-                    text-align: center;
-                    margin-top: 30px;
-                    padding: 20px;
-                    font-size: 0.9em;
-                    color: #666;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>EEG Clustering Analysis</h1>
-                    <p>Visualization of EEG Features Across Three Baby Brain Subtypes</p>
-                </div>
-                
-                <div class="viz-section">
-                    <h2>Cluster Profiles Overview</h2>
-                    <div class="description">
-                        <p>This dashboard presents a comprehensive visualization of EEG patterns identified in infant brain data (n=144). 
-                        Using both Latent Profile Analysis (LPA) and Hierarchical Clustering (HC), we identified three distinct neurophysiological subtypes.</p>
-                    </div>
-                    
-                    <div class="tabs">
-                        <div class="tab active" data-target="dashboard">Complete Dashboard</div>
-                        <div class="tab" data-target="radar">Radar Plots</div>
-                        <div class="tab" data-target="distributions">Distributions</div>
-                        <div class="tab" data-target="tsne">t-SNE Projection</div>
-                    </div>
-                    
-                    <div class="tab-content active" id="dashboard">
-                        <img src="EEG_Cluster_Dashboard.png" alt="Cluster Dashboard">
-                        <p>This comprehensive dashboard shows cluster profiles, differentiation power, and comparative analysis across all EEG measures.</p>
-                    </div>
-                    
-                    <div class="tab-content" id="radar">
-                        <div class="row">
-                            <div class="col">
-                                <img src="EEG_Profiles_LPA_Radar.png" alt="LPA Radar Plot">
-                                <p>Radar plot showing normalized EEG profiles for each LPA cluster.</p>
-                            </div>
-                            <div class="col">
-                                <img src="EEG_Profiles_HC_Radar.png" alt="HC Radar Plot">
-                                <p>Radar plot showing normalized EEG profiles for each HC cluster.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="tab-content" id="distributions">
-                        <img src="EEG_Measure_Distributions.png" alt="Distribution Plots">
-                        <p>Distribution of each EEG measure across clusters, comparing LPA and HC classification approaches.</p>
-                    </div>
-                    
-                    <div class="tab-content" id="tsne">
-                        <img src="EEG_tSNE_Cluster_Projection.png" alt="t-SNE Projection">
-                        <p>Two-dimensional projection showing how subjects cluster in EEG feature space.</p>
-                    </div>
-                </div>
-                
-                <div class="viz-section">
-                    <h2>Cluster Differentiation Analysis</h2>
-                    <div class="row">
-                        <div class="col">
-                            <img src="EEG_Cluster_Differentiation_Power.png" alt="Differentiation Power">
-                            <p>Bar chart showing how strongly each EEG measure differentiates between clusters.</p>
-                        </div>
-                        <div class="col">
-                            <img src="EEG_Profiles_Combined_Heatmap.png" alt="Cluster Heatmap">
-                            <p>Heatmap with hierarchical clustering showing relationships between EEG profiles.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="viz-section">
-                    <h2>Detailed Profile Analysis</h2>
-                    <div class="row">
-                        <div class="col">
-                            <img src="EEG_Profiles_LPA_Parallel.png" alt="LPA Parallel Coordinates">
-                            <p>Parallel coordinate plot showing individual subjects and mean profiles for LPA clusters.</p>
-                        </div>
-                        <div class="col">
-                            <img src="EEG_Profiles_HC_Parallel.png" alt="HC Parallel Coordinates">
-                            <p>Parallel coordinate plot showing individual subjects and mean profiles for HC clusters.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <footer>
-                    <p>EEG Cluster Analysis Dashboard • Created for Research Visualization</p>
-                </footer>
-            </div>
-            
-            <script>
-                // Simple tab functionality
-                document.addEventListener('DOMContentLoaded', function() {
-                    const tabs = document.querySelectorAll('.tab');
-                    tabs.forEach(tab => {
-                        tab.addEventListener('click', function() {
-                            // Remove active class from all tabs
-                            tabs.forEach(t => t.classList.remove('active'));
-                            // Add active class to clicked tab
-                            this.classList.add('active');
-                            
-                            // Hide all tab content
-                            document.querySelectorAll('.tab-content').forEach(content => {
-                                content.classList.remove('active');
-                            });
-                            
-                            // Show the corresponding content
-                            const targetId = this.getAttribute('data-target');
-                            document.getElementById(targetId).classList.add('active');
-                        });
-                    });
-                });
-            </script>
-        </body>
-        </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EEG Cluster Analysis Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f9fc;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background-color: #184e77;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .viz-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin: 0;
+        }
+        h2 {
+            color: #184e77;
+            border-bottom: 2px solid #34a0a4;
+            padding-bottom: 10px;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px;
+        }
+        .col {
+            flex: 1;
+            padding: 0 15px;
+            min-width: 300px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #eee;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 
         

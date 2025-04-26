@@ -3,203 +3,1553 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EEG Cluster Analysis Dashboard</title>
+    <title>EEG Class Analysis Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.16.1/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        :root {
+            --primary-color: #184e77;
+            --secondary-color: #34a0a4;
+            --accent-color: #52b69a;
+            --bg-color: #f5f9fc;
+            --text-color: #333;
+            --card-bg: white;
+            --header-text: white;
+            --border-color: #e0e6ed;
+            
+            /* Class Colors - same for both LPA and HC */
+            --class-a: #184e77;
+            --class-b: #1a759f;
+            --class-c: #34a0a4;
+        }
+
+        .dark-mode {
+            --primary-color: #1a759f;
+            --secondary-color: #34a0a4;
+            --accent-color: #76c893;
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --header-text: #f5f5f5;
+            --border-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f9fc;
-            color: #333;
+            padding: 0;
         }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.6;
+        }
+
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
         }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--primary-color);
+            color: var(--header-text);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.15);
+            transition: transform 0.3s;
+            z-index: 100;
+        }
+
+        .sidebar-collapsed {
+            transform: translateX(-280px);
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            z-index: 101;
+            font-size: 1rem;
+            display: none;
+        }
+
+        .sidebar-toggle.visible {
+            display: block;
+        }
+
+        .logo {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 30px;
+        }
+
+        .logo h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .logo p {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-section {
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .nav-links li {
+            margin-bottom: 2px;
+        }
+
+        .nav-links a {
+            color: var(--header-text);
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateX(5px);
+        }
+
+        .nav-links a.active {
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            margin-left: 280px;
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            background-color: #184e77;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
+            margin-bottom: 40px;
+            background-color: var(--primary-color);
+            color: var(--header-text);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
+
         .viz-section {
-            background: white;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: var(--card-bg);
+            padding: 25px;
+            margin-bottom: 40px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-color);
         }
+
         h1 {
             margin: 0;
+            font-size: 2.2rem;
+            font-weight: 700;
         }
+
+        .subtitle {
+            margin-top: 10px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
         h2 {
-            color: #184e77;
-            border-bottom: 2px solid #34a0a4;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
             padding-bottom: 10px;
+            margin-bottom: 25px;
+            font-size: 1.6rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
         }
+
+        h2 i {
+            margin-right: 10px;
+        }
+
+        .section-description {
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-color);
+        }
+
         .row {
             display: flex;
             flex-wrap: wrap;
-            margin: 0 -15px;
+            margin: 0 -15px 20px;
         }
+
         .col {
             flex: 1;
             padding: 0 15px;
             min-width: 300px;
+            margin-bottom: 30px;
         }
-        img {
+
+        .viz-container {
+            position: relative;
+            margin-bottom: 30px;
+            transition: transform 0.2s;
+        }
+
+        .viz-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .viz-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .viz-subtitle {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .viz-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        img.viz-image {
             max-width: 100%;
             height: auto;
             display: block;
-            margin: 0 auto;
-            border: 1px solid #eee;
+            transition: transform 0.3s;
+            cursor: pointer;
         }
+        .viz-card iframe {
+        min-height: 600px;
+        height: 100%;
+        width: 100%;
+    }
+
+
+    /* Two-column layout */
+.row {
+    display: flex;
+    gap: 20px;
+    margin: 0 -10px;
+}
+
+.col {
+    flex: 1;
+    padding: 0 10px;
+    min-width: 0; /* Prevent overflow */
+}
+
+/* EEG Features List */
+.eeg-features-list {
+    columns: 2;
+    column-gap: 30px;
+    padding-left: 20px;
+}
+
+.eeg-features-list li {
+    margin-bottom: 8px;
+    break-inside: avoid; /* Prevent item splitting across columns */
+    padding-right: 10px;
+}
+
+* Two-column layout */
+.row {
+    display: flex;
+    gap: 20px;
+    margin: 0 -10px;
+}
+
+.col {
+    flex: 1;
+    padding: 0 10px;
+    min-width: 0;
+}
+
+/* Table styling (matches your preferred format) */
+.demographics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.demographics-table th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.demographics-table td {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.demographics-table tr:nth-child(even) {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.category-row {
+    background-color: rgba(25, 113, 194, 0.1);
+    font-weight: bold;
+}
+
+.category-row td {
+    padding-top: 15px;
+    border-top: 2px solid var(--border-color);
+}
+
+* EEG Composite Figure Styles */
+.eeg-composite-figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.composite-image {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.figure-caption {
+    font-size: 0.9em;
+    color: #555;
+    text-align: center;
+    line-height: 1.4;
+    padding: 0 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column;
+    }
+    .col {
+        padding: 0;
+    }
+}
+    /* Remove default padding from containers */
+    .iframe-container {
+        padding: 0 !important;
+        height: 100%;
+    }
+
+
+.class-size-container {
+    flex: 1;
+    min-height: 600px;
+}
+
+/* Radar plot section adjustments */
+#eeg-profiles {
+    margin-top: 40px;
+}
+
+/* Ensure iframes maintain aspect ratio */
+.viz-card iframe {
+    aspect-ratio: 16/9;
+}
+    /* Make chart containers larger */
+    .chart-container {
+        height: 700px !important;
+        min-height: 700px;
+    }
+        .viz-card:hover img.viz-image {
+            transform: scale(1.02);
+        }
+
+        .viz-caption {
+            padding: 15px;
+            background: rgba(0,0,0,0.02);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+        }
+
         .tabs {
             display: flex;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 25px;
         }
+
         .tab {
-            padding: 10px 20px;
+            padding: 12px 25px;
             cursor: pointer;
-            background: #f1f8f8;
-            border: 1px solid #ddd;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
             border-bottom: none;
-            border-radius: 5px 5px 0 0;
-            margin-right: 5px;
+            border-radius: 8px 8px 0 0;
+            margin-right: 8px;
+            margin-bottom: -1px;
+            transition: all 0.2s;
+            font-weight: 500;
         }
+
         .tab.active {
-            background: #184e77;
+            background: var(--primary-color);
             color: white;
-            border-color: #184e77;
+            border-color: var(--primary-color);
         }
+
         .tab-content {
             display: none;
         }
+
         .tab-content.active {
             display: block;
         }
-        .description {
-            margin-bottom: 20px;
-            line-height: 1.6;
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
         }
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px;
+
+        .key-finding {
+            background-color: rgba(82, 182, 154, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .key-finding h4 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .toggle-theme {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .toggle-theme:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        #lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #lightbox-image {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .panel-label {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px;
+            color: var(--primary-color);
+            background: rgba(255,255,255,0.7);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .panel-container {
+            position: relative;
+        }
+
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-280px);
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        .toggle-theme {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .toggle-theme:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        #lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #lightbox.active {
+            opacity: 1;
+        }
+
+        #lightbox-image {
+            max-width: 90%;
+            max-height: 90%;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        #lightbox.active #lightbox-image {
+            transform: scale(1);
+        }
+
+        .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-lightbox:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .panel-label {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px;
+            color: var(--primary-color);
+            background: rgba(255,255,255,0.8);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .panel-container {
+            position: relative;
+        }
+
+        /* EEG Features List */
+        .eeg-features-list {
+            columns: 2;
+            column-gap: 30px;
+            padding-left: 20px;
+        }
+
+        .eeg-features-list li {
+            margin-bottom: 8px;
+            break-inside: avoid; /* Prevent item splitting across columns */
+            padding-right: 10px;
+        }
+
+        /* Table styling */
+        .demographics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
             font-size: 0.9em;
-            color: #666;
         }
+
+        .demographics-table th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        .demographics-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .demographics-table tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.03);
+        }
+
+        .category-row {
+            background-color: rgba(25, 113, 194, 0.1);
+            font-weight: bold;
+        }
+
+        .category-row td {
+            padding-top: 15px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        /* EEG Composite Figure Styles */
+        .eeg-composite-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .composite-image {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .figure-caption {
+            font-size: 0.9em;
+            color: #555;
+            text-align: center;
+            line-height: 1.4;
+            padding: 0 10px;
+        }
+
+        .method-comparison {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 10px;
+        }
+
+        .method-card {
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .method-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .method-description {
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        /* Footer styling */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            border-radius: 10px;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-content p {
+            margin: 10px 0;
+        }
+
+        .copyright {
+            font-size: 0.85em;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+
+        /* For larger view in mobile */
+        .chart-container {
+            height: 700px !important;
+            min-height: 700px;
+        }
+
+        /* Make iframes work better */
+        .iframe-container {
+            padding: 0 !important;
+            height: 100%;
+        }
+
+        /* Progress tracker component */
+        .progress-tracker {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .progress-tracker::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--border-color);
+            z-index: 1;
+        }
+
+        .progress-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Class badges */
+        .class-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 5px;
+        }
+
+        .class-a-badge {
+            background-color: var(--class-a-light);
+            color: var(--class-a);
+        }
+
+        .class-b-badge {
+            background-color: var(--class-b-light);
+            color: var(--class-b);
+        }
+
+        .class-c-badge {
+            background-color: var(--class-c-light);
+            color: var(--class-c);
+        }
+
+        /* Feature block */
+        .feature-block {
+            background: linear-gradient(to right, var(--bg-color), transparent);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--secondary-color);
+            transition: all 0.3s;
+        }
+
+        .feature-block:hover {
+            transform: translateX(5px);
+            border-left-width: 5px;
+        }
+
+        .feature-block-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        /* New accordion for EEG features */
+        .accordion {
+            margin-bottom: 20px;
+        }
+
+        .accordion-item {
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            padding: 15px;
+            background: rgba(0,0,0,0.02);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .accordion-header:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .accordion-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .accordion-content-inner {
+            padding: 15px;
+        }
+
+        .accordion-active .accordion-content {
+            max-height: 500px;
+        }
+
+        /* Responsive adjustments */
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-280px);
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+
+            .row {
+                flex-direction: column;
+            }
+            
+            .col {
+                min-width: 100%;
+            }
+            
+            .method-comparison {
+                flex-direction: column;
+            }
+            
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                flex-wrap: nowrap;
+                padding-bottom: 10px;
+            }
+            
+            .tab {
+                flex: 0 0 auto;
+            }
+        }
+
+        /* Accessibility improvements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Skip to main content link for keyboard users */
+        .skip-link {
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            left: 50%;
+            padding: 10px;
+            position: absolute;
+            transform: translateY(-100%);
+            transition: transform 0.3s;
+            z-index: 100;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0%);
+        }
+
     </style>
 </head>
 <body>
+    <!-- Accessibility skip link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="container">
-        <div class="header">
-            <h1>EEG Clustering Analysis</h1>
-            <p>Visualization of EEG Features Across Three Baby Brain Subtypes</p>
-        </div>
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <h2>EEG Analysis</h2>
+                <p>Infant Brain Subtypes</p>
+            </div>
+            
+            <div class="nav-section">Overview</div>
+            <ul class="nav-links">
+                <li><a href="#overview" class="active">Study Summary</a></li>
+                <li><a href="#study-demographics">Demographics</a></li>
+                <li><a href="#classes">Class Identification</a></li>
+            </ul>
+            
+            <div class="nav-section">EEG Analysis</div>
+            <ul class="nav-links">
+                <li><a href="#distributions">Feature Distributions</a></li>
+                <li><a href="#eeg-profiles">Class Profiles</a></li>
+                <li><a href="#eeg-umap">UMAP Projections</a></li>
+            </ul>
+            
+            <div class="nav-section">Language Development</div>
+            <ul class="nav-links">
+                <li><a href="#language-trajectories">Trajectories</a></li>
+                <li><a href="#lang-36months">36 Month Analysis</a></li>
+            </ul>
+            
+            <button class="toggle-theme" id="toggleTheme" aria-label="Toggle dark mode">🌓 Toggle Dark Mode</button>
+        </aside>
         
-        <div class="viz-section">
-            <h2>Cluster Profiles Overview</h2>
-            <div class="description">
-                <p>This dashboard presents a comprehensive visualization of EEG patterns identified in infant brain data (n=144). 
-                Using both Latent Profile Analysis (LPA) and Hierarchical Clustering (HC), we identified three distinct neurophysiological subtypes.</p>
+        <button id="sidebarToggle" class="sidebar-toggle" aria-expanded="false" aria-controls="sidebar">☰ Menu</button>
+        
+        <main class="main-content" id="main-content">
+            <section class="header" id="overview">
+                <h1>EEG Class Analysis Dashboard</h1>
+                <div class="subtitle">Latent Profile Analysis & Hierarchical Clustering of EEG Data (n=144)</div>
+            </section>
+
+            <!-- Progress tracker -->
+            <div class="progress-tracker">
+                <div class="progress-step">
+                    <div class="step-icon">1</div>
+                    <div class="step-label">Data Collection</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-icon">2</div>
+                    <div class="step-label">EEG Analysis</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-icon">3</div>
+                    <div class="step-label">Class Identification</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-icon">4</div>
+                    <div class="step-label">Language Assessment</div>
+                </div>
             </div>
             
-            <div class="tabs">
-                <div class="tab active" data-target="dashboard">Complete Dashboard</div>
-                <div class="tab" data-target="radar">Radar Plots</div>
-                <div class="tab" data-target="distributions">Distributions</div>
-                <div class="tab" data-target="tsne">t-SNE Projection</div>
-            </div>
+            <section class="viz-section">
+                <h2>Study Overview</h2>
+                <div class="section-description">
+                    This study examines EEG measures in infants (n=144) from the EEG-IP dataset, using both latent profile analysis (LPA) and hierarchical clustering (HC) to identify distinct neurophysiological subtypes. Three distinct classes were identified through each method, showing different language development trajectories over time.
+                </div>
+                
+                <div class="method-comparison">
+                    <div class="method-card">
+                        <div class="method-title">Latent Profile Analysis (LPA)</div>
+                        <div class="method-description">
+                            A probabilistic approach that identifies latent classes based on multivariate normal distributions of observed variables.
+                        </div>
+                    </div>
+                    <div class="method-card">
+                        <div class="method-title">Hierarchical Clustering (HC)</div>
+                        <div class="method-description">
+                            A deterministic method that builds nested clusters by merging or splitting groups based on distance metrics.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="key-finding">
+                    <h4>Key Finding</h4>
+                    <p>Different EEG-based subtypes show distinct language development trajectories and outcomes at 36 months, suggesting that early neurophysiological markers may predict developmental outcomes.</p>
+                </div>
+             </section>
+            <section class="viz-section" id="study-demographics">
+                <h2>Study Demographics & EEG Features</h2>
+                <div class="section-description">
+                    Participant characteristics and measured EEG biomarkers (n=144).
+                </div>
             
-            <!-- All image paths are now relative (just filename) -->
-            <div class="tab-content active" id="dashboard">
-                <img src="EEG_Cluster_Dashboard.png" alt="Cluster Dashboard">
-                <p>This comprehensive dashboard shows cluster profiles, differentiation power, and comparative analysis across all EEG measures.</p>
-            </div>
-            
-            <div class="tab-content" id="radar">
                 <div class="row">
+                    <!-- Left Column - Demographics Table -->
                     <div class="col">
-                        <img src="EEG_Profiles_LPA_Radar.png" alt="LPA Radar Plot">
-                        <p>Radar plot showing normalized EEG profiles for each LPA cluster.</p>
+                        <div class="viz-container">
+                            <div class="viz-title">Participant Demographics</div>
+                            <div class="viz-card">
+                                <table class="demographics-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Characteristic</th>
+                                            <th>n</th>
+                                            <th>%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Diagnostic Status -->
+                                        <tr class="category-row">
+                                            <td colspan="3">Diagnostic Status</td>
+                                        </tr>
+                                        <tr>
+                                            <td>ASD</td>
+                                            <td>72</td>
+                                            <td>50.0</td>
+                                        </tr>
+                                        <tr>
+                                            <td>No ASD</td>
+                                            <td>72</td>
+                                            <td>50.0</td>
+                                        </tr>
+                                        
+                                        <!-- ASD Likelihood -->
+                                        <tr class="category-row">
+                                            <td colspan="3">ASD Likelihood</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Typical</td>
+                                            <td>96</td>
+                                            <td>66.7</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Elevated</td>
+                                            <td>48</td>
+                                            <td>33.3</td>
+                                        </tr>
+                                        
+                                        <!-- Site -->
+                                        <tr class="category-row">
+                                            <td colspan="3">Site</td>
+                                        </tr>
+                                        <tr>
+                                            <td>London</td>
+                                            <td>84</td>
+                                            <td>58.3</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Washington</td>
+                                            <td>60</td>
+                                            <td>41.7</td>
+                                        </tr>
+                                        
+                                        <!-- Sex -->
+                                        <tr class="category-row">
+                                            <td colspan="3">Sex</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Male</td>
+                                            <td>96</td>
+                                            <td>66.7</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Female</td>
+                                            <td>48</td>
+                                            <td>33.3</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
+            
+                    <!-- Right Column - EEG Features Visualization -->
                     <div class="col">
-                        <img src="EEG_Profiles_HC_Radar.png" alt="HC Radar Plot">
-                        <p>Radar plot showing normalized EEG profiles for each HC cluster.</p>
+                        <div class="viz-container">
+                            <div class="viz-title">EEG Measures & Associated Brain Regions</div>
+                            <div class="viz-card">
+                                <div class="eeg-composite-figure">
+                                    <img src="images/brain_regions_combined.png" alt="EEG features and their brain locations" class="composite-image">
+                                    <div class="figure-caption">
+                                        <strong>Key EEG Features:</strong> 
+                                        1) Frontal Gamma Power, 2) Connectivity Auditory Network, 
+                                        3) Connectivity Language Network, 4) Connectivity Speech Network, 
+                                        5) Spectral Power Lateralization
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
+            <section class="viz-section" id="classes">
+                <h2>Class Identification</h2>
+                <div class="section-description">
+                    Our analyses revealed three distinct classes using both Latent Profile Analysis and Hierarchical Clustering methods.
+                </div>
+                
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tab" data-tab="sankey-view">Sankey Diagram</div>
+                    <div class="tab active" data-tab="class-sizes-view">Class Sizes</div>
+                </div>
+                
+                <!-- Sankey Diagram Content -->
+                <div class="tab-content" id="sankey-view">
+                    <div class="viz-container">
+                        <div class="viz-title">Class Relationships</div>
+                        <div class="viz-card" style="padding:0;">
+                            <div class="iframe-container" style="padding-bottom:100%;">
+                                <iframe src="images/sankey_diagram_2025_04_23.html" 
+                                        title="Sankey Diagram"
+                                        style="width:100%; height:100%; border:none;"></iframe>
+                            </div>
+                            <div class="viz-caption">
+                                Flow diagram showing relationship between LPA (left) and HC (right) classes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Class Sizes Content -->
+                <div class="tab-content active" id="class-sizes-view">
+                    <div class="viz-container">
+                        <div class="viz-title">Class Distribution</div>
+                        <div class="viz-card">
+                            <img src="images/LPA_HC_classes_size_2025_04_23.png" 
+                                 alt="Class sizes visualization" 
+                                 class="viz-image">
+                            <div class="viz-caption">
+                                Distribution of participants across identified classes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              
+             </section>
             
-            <div class="tab-content" id="distributions">
-                <img src="EEG_Measure_Distributions.png" alt="Distribution Plots">
-                <p>Distribution of each EEG measure across clusters, comparing LPA and HC classification approaches.</p>
-            </div>
+             <section class="viz-section" id="distributions">
+                <h2>Class Feature Distributions</h2>
+                <div class="section-description">
+                    Distribution of EEG features across the identified classes, showing how neurophysiological markers differ between groups.
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="eeg-distributions">EEG Distributions</div>
+                    <div class="tab" data-tab="discriminative-power">Feature Discriminative Power</div>
+                </div>
+                
+                <div class="tab-content active" id="eeg-distributions">
+                    <div class="viz-container" style="max-width: 1300px !important;">
+                        <div class="viz-title">EEG Feature Distributions</div>
+                        <div class="viz-card">
+                            <img src="images/EEG_Measure_Long_Distributions_2025_04_23.png" 
+                                 alt="Distribution plots for EEG features" 
+                                 class="viz-image"
+                                 style="max-height: 1200px; width: auto; margin: 0 auto;">
+                            <div class="viz-caption">
+                                Distribution of each EEG measure across clusters, comparing LPA and HC classification approaches.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="discriminative-power">
+                    <div class="viz-container">
+                        <div class="viz-title">Feature Discriminative Power</div>
+                        <div class="viz-card">
+                            <img src="images/EEG_Class_Differentiation_Power.png" 
+                                 alt="Feature discriminative power" 
+                                 class="viz-image">
+                            <div class="viz-caption">
+                                F-statistics showing which EEG features most strongly differentiate between classes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             
-            <div class="tab-content" id="tsne">
-                <img src="EEG_tSNE_Cluster_Projection.png" alt="t-SNE Projection">
-                <p>Two-dimensional projection showing how subjects cluster in EEG feature space.</p>
-            </div>
-        </div>
-        
-        <div class="viz-section">
-            <h2>Cluster Differentiation Analysis</h2>
-            <div class="row">
-                <div class="col">
-                    <img src="EEG_Cluster_Differentiation_Power.png" alt="Differentiation Power">
-                    <p>Bar chart showing how strongly each EEG measure differentiates between clusters.</p>
+            <section class="viz-section" id="eeg-profiles">
+                <h2>Class EEG Profiles</h2>
+                <div class="section-description">
+                    Visualization of EEG profiles for each identified class, showing patterns of neurophysiological functioning.
                 </div>
-                <div class="col">
-                    <img src="EEG_Profiles_Combined_Heatmap.png" alt="Cluster Heatmap">
-                    <p>Heatmap with hierarchical clustering showing relationships between EEG profiles.</p>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="radar-plots">Radar Plots</div>
+                    <div class="tab" data-tab="parallel-plots">Parallel Coordinates</div>
+                    <div class="tab" data-tab="heatmap">Profile Heatmap</div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="viz-section">
-            <h2>Detailed Profile Analysis</h2>
-            <div class="row">
-                <div class="col">
-                    <img src="EEG_Profiles_LPA_Parallel.png" alt="LPA Parallel Coordinates">
-                    <p>Parallel coordinate plot showing individual subjects and mean profiles for LPA clusters.</p>
+                
+                <div class="tab-content active" id="radar-plots">
+                    <div class="row">
+                        <div class="col panel-container">
+                            <div class="viz-container">
+                                <div class="viz-title">LPA Class Profiles (Radar)</div>
+                                <div class="viz-card">
+                                    <img src="images/EEG_Profiles_LPA_Radar.png" alt="Radar plot of EEG profiles for LPA classes" class="viz-image">
+                                    <div class="viz-caption">
+                                        Radar plot showing normalized EEG profiles for LPA classes (A, B, C).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col panel-container">
+                            <div class="viz-container">
+                                <div class="viz-title">HC Class Profiles (Radar)</div>
+                                <div class="viz-card">
+                                    <img src="images/EEG_Profiles_HC_Radar.png" alt="Radar plot of EEG profiles for HC classes" class="viz-image">
+                                    <div class="viz-caption">
+                                        Radar plot showing normalized EEG profiles for HC classes (a, b, c).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col">
-                    <img src="EEG_Profiles_HC_Parallel.png" alt="HC Parallel Coordinates">
-                    <p>Parallel coordinate plot showing individual subjects and mean profiles for HC clusters.</p>
+                
+                <div class="tab-content" id="parallel-plots">
+                    <div class="row">
+                        <div class="col">
+                            <div class="viz-container">
+                                <div class="viz-title">LPA Profiles (Parallel Coordinates)</div>
+                                <div class="viz-card">
+                                    <img src="images/EEG_Profiles_LPA_Parallel.png" alt="Parallel coordinate plot for LPA classes" class="viz-image">
+                                    <div class="viz-caption">
+                                        Parallel coordinate plot showing individual trajectories and means for LPA classes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="viz-container">
+                                <div class="viz-title">HC Profiles (Parallel Coordinates)</div>
+                                <div class="viz-card">
+                                    <img src="images/EEG_Profiles_HC_Parallel.png" alt="Parallel coordinate plot for HC classes" class="viz-image">
+                                    <div class="viz-caption">
+                                        Parallel coordinate plot showing individual trajectories and means for HC classes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        
-        <footer>
-            <p>EEG Cluster Analysis Dashboard • Created for Research Visualization</p>
-        </footer>
+                
+                <div class="tab-content" id="heatmap">
+                    <div class="viz-container">
+                        <div class="viz-title">Combined Profile Heatmap</div>
+                        <div class="viz-card">
+                            <img src="images/EEG_Profiles_Combined_Heatmap.png" alt="Heatmap of EEG profiles across LPA and HC classes" class="viz-image">
+                            <div class="viz-caption">
+                                Heatmap with hierarchical clustering of EEG profiles across LPA and HC classes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="viz-section" id="eeg-umap">
+                <h2>UMAP Projections</h2>
+                <div class="section-description">
+                    Dimensionality reduction showing separation of classes in EEG feature space using UMAP (Uniform Manifold Approximation and Projection).
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab" data-tab="umap3d">3D UMAP Projection</div>
+                    <div class="tab active" data-tab="umap2d">2D UMAP Projection</div>
+                </div>
+                
+                <div class="tab-content active" id="umap2d">
+                    <div class="viz-container">
+                        <div class="viz-title">2D UMAP Projection</div>
+                        <div class="viz-card">
+                            <img src="images/EEG_UMAP2D_Projection.png" alt="2D UMAP showing cluster separation" class="viz-image">
+                            <div class="viz-caption">
+                                2D UMAP projection showing how subjects cluster in the EEG feature space.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="umap3d">
+                    <div class="viz-container">
+                        <div class="viz-title">3D UMAP Projection (Interactive)</div>
+                        <div class="chart-container" style="height:500px;">
+                            <div class="iframe-container" style="padding-bottom:100%;"> <!-- Adjust this percentage as needed -->
+                                <iframe src="images/EEG_UMAP_3D_Projection.html" title="3D UMAP Projection"
+                                style="width:110%; height:100%; border:none;"></iframe>
+                            </div>
+                        </div>
+                        <div class="viz-caption">
+                            Interactive 3D UMAP showing EEG feature space colored by LPA and HC classes.
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="viz-section" id="language-trajectories">
+                <h2>Language Development Trajectories</h2>
+                <div class="section-description">
+                    Longitudinal analysis of language development by class, showing how different EEG-based groups develop over time.
+                </div>
+                
+                <div class="viz-container" style="max-width: 900px; margin: 0 auto;">
+                    <div class="panel-container">
+                        <div class="viz-title">Language Trajectories</div>
+                        <div class="viz-card">
+                            <img src="images/language_trajectories_2025_04_23.png" 
+                                 alt="Language trajectories by class" 
+                                 class="viz-image"
+                                 style="max-height: 500px; width: auto; margin: 0 auto;">
+                            <div class="viz-caption">
+                                Developmental trajectories of language skills across EEG subtypes over time.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="key-finding">
+                    <h4>Key Finding</h4>
+                    <p>Classes show divergent language development patterns, with differences increasing over time, suggesting early EEG markers may predict language development trajectories.</p>
+                </div>
+             </section>
+            
+            <section class="viz-section" id="lang-36months">
+                <h2>36-Month Language Outcomes</h2>
+                <div class="section-description">
+                    Analysis of language abilities at 36 months, showing differences in outcomes between EEG-based classes.
+                </div>
+                
+                <div class="viz-container">
+                    <div class="viz-title">Language Scores at 36 Months</div>
+                    <div class="viz-card">
+                        <img src="images/language_analysis_36months.png" alt="Boxplots of language scores at 36 months by class" class="viz-image">
+                        <div class="viz-caption">
+                            Boxplots comparing expressive and receptive language scores at 36 months by class, with statistical significance annotations.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="key-finding">
+                    <h4>Key Finding</h4>
+                    <p>Classes identified through EEG profiles show statistically significant differences in language outcomes at 36 months, with Class A/a showing the most favorable outcomes.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <div id="lightbox">
+        <span class="close-lightbox">&times;</span>
+        <img id="lightbox-image" src="" alt="Enlarged visualization">
     </div>
     
     <script>
-        // Simple tab functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // Remove active class from all tabs
-                    tabs.forEach(t => t.classList.remove('active'));
-                    // Add active class to clicked tab
-                    this.classList.add('active');
-                    
-                    // Hide all tab content
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    
-                    // Show the corresponding content
-                    const targetId = this.getAttribute('data-target');
-                    document.getElementById(targetId).classList.add('active');
+        // Toggle sidebar
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('sidebar-collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+        
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                const tabContent = document.getElementById(tabId);
+                const tabContainer = this.closest('.tabs').parentElement;
+                
+                // Remove active class from all tabs
+                this.parentElement.querySelectorAll('.tab').forEach(t => {
+                    t.classList.remove('active');
                 });
+                
+                // Remove active class from all tab contents
+                tabContainer.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Add active class to clicked tab and its content
+                this.classList.add('active');
+                tabContent.classList.add('active');
             });
         });
+        
+        // Dark mode toggle
+        const toggleTheme = document.querySelector('.toggle-theme');
+        toggleTheme.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            
+            // Save preference to local storage
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+        
+        // Check for saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+        }
+        
+        // Lightbox functionality
+        const vizImages = document.querySelectorAll('.viz-image');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImage = document.getElementById('lightbox-image');
+        const closeLightbox = document.querySelector('.close-lightbox');
+        
+        vizImages.forEach(img => {
+            img.addEventListener('click', function() {
+                lightboxImage.src = this.src;
+                lightbox.style.display = 'flex';
+            });
+        });
+        
+        closeLightbox.addEventListener('click', function() {
+            lightbox.style.display = 'none';
+        });
+        
+        lightbox.addEventListener('click', function(e) {
+            if (e.target === lightbox) {
+                lightbox.style.display = 'none';
+            }
+        });
+        
+        // Navigation highlighting
+        const navLinks = document.querySelectorAll('.nav-links a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove('active'));
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Scroll to section
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // Close sidebar on mobile
+                if (window.innerWidth <= 1024) {
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.add('expanded');
+                }
+            });
+        });
+        
+        // Responsive adjustments
+        function checkWidth() {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.add('expanded');
+                sidebarToggle.classList.add('visible');
+            } else {
+                sidebar.classList.remove('sidebar-collapsed');
+                mainContent.classList.remove('expanded');
+                sidebarToggle.classList.remove('visible');
+            }
+        }
+        
+        window.addEventListener('load', checkWidth);
+        window.addEventListener('resize', checkWidth);
     </script>
+    
 </body>
 </html>
+

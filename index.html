@@ -1382,26 +1382,69 @@
                     Longitudinal analysis of language development by class, showing how different EEG-based groups develop over time.
                 </div>
                 
-                <div class="viz-container" style="max-width: 1200px; margin: 0 auto;">
-                    <div class="panel-container">
-                        <div class="viz-title">Language Trajectories</div>
-                        <div class="viz-card">
-                            <img src="images/language_trajectories_2025_04_23.png" 
-                                 alt="Language trajectories by class" 
-                                 class="viz-image"
-                                 style="max-height: 500px; width: auto; margin: 0 auto;">
-                            <div class="viz-caption">
-                                Developmental trajectories of language skills across EEG subtypes over time.
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tab active" data-tab="trajectories-graph">Trajectories Graph</div>
+                    <div class="tab" data-tab="expressive-model">Expressive Language Model</div>
+                    <div class="tab" data-tab="receptive-model">Receptive Language Model</div>
+                </div>
+                
+                <!-- Trajectories Graph Content -->
+                <div class="tab-content active" id="trajectories-graph">
+                    <div class="viz-container" style="max-width: 1200px; margin: 0 auto;">
+                        <div class="panel-container">
+                            <div class="viz-title">Language Trajectories</div>
+                            <div class="viz-card">
+                                <img src="images/language_trajectories_2025_04_23.png" 
+                                     alt="Language trajectories by class" 
+                                     class="viz-image"
+                                     style="max-height: 500px; width: auto; margin: 0 auto;">
+                                <div class="viz-caption">
+                                    Developmental trajectories of language skills across EEG subtypes over time.
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="key-finding">
-                    <h4>Key Finding</h4>
-                    <p>Classes show divergent language development patterns, with differences increasing over time, suggesting early EEG markers may predict language development trajectories.</p>
+                <!-- Expressive Language Model Content -->
+                <div class="tab-content" id="expressive-model">
+                    <div class="viz-container" style="max-width: 1200px; margin: 0 auto;">
+                        <div class="panel-container">
+                            <div class="viz-title">Expressive Language Model Results</div>
+                            <div class="viz-card">
+                                <div class="iframe-container" style="padding-bottom: 100%;">
+                                    <iframe src="images/HC_Expressive_fixed_effects_table.html" 
+                                            title="Expressive Language Model Results"
+                                            style="width: 100%; height: 100%; border: none;"></iframe>
+                                </div>
+                                <div class="viz-caption">
+                                    Fixed effects table for the expressive language linear model.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-             </section>
+                
+                <!-- Receptive Language Model Content -->
+                <div class="tab-content" id="receptive-model">
+                    <div class="viz-container" style="max-width: 1200px; margin: 0 auto;">
+                        <div class="panel-container">
+                            <div class="viz-title">Receptive Language Model Results</div>
+                            <div class="viz-card">
+                                <div class="iframe-container" style="padding-bottom: 100%;">
+                                    <iframe src="images/LPA_Receptive_fixed_effects_table.html" 
+                                            title="Receptive Language Model Results"
+                                            style="width: 100%; height: 100%; border: none;"></iframe>
+                                </div>
+                                <div class="viz-caption">
+                                    Fixed effects table for the receptive language linear model.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             
             <section class="viz-section" id="lang-36months">
                 <h2>36-Month Language Outcomes</h2>

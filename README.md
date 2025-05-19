@@ -49,7 +49,7 @@ The dashboard visualizes research data collected from 144 infants (52.8% male, 4
 - CSS styles are embedded in the HTML file for simplified distribution
 
 ## Acknowledgments
-This project visualizes research on early neural and behavioral markers of language development in infancy, combining EEG analysis with longitudinal language assessments to identify meaningful developmental subtypes.
+This project visualizes research on early neural and behavioral markers of language development in infancy, combining EEG analysis with longitudinal language assessments to identify meaningful developmental subtypes. This was also made with susbtanttial help of Claude Sonnet 3.7 and ChatGPT
 
 ## Contact
 For questions about the research data or visualization implementation, please create an issue in this repository.

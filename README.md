@@ -1,5 +1,19 @@
 # Infant Neurodevelopmental Subtypes Dashboard
+Added new changes
+# Interactive Visualization of EEG Data Predicting Language Outcomes
+![Infant Neurodevelopmental Subtypes Dashboard](./images/infant_neurodevelopmental_subtypes_dashboard.png)
 
+## Table of Contents
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Research Highlights](#research-highlights)
+- [Technical Details](#technical-details)
+- [Getting Started](#getting-started)
+- [Data Source](#data-source)
+- [Project Structure](#project-structure)
+- [Acknowledgments](#acknowledgments)
+- [Contact](#contact)
+- [License](#license)
 ## Overview
 This interactive dashboard visualizes research findings on how brain activity patterns in 6-month-old infants predict language development outcomes. The project uses EEG data from 144 infants to identify distinct neural subtypes through latent profile analysis and hierarchical clustering approaches.
 

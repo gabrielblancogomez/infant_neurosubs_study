@@ -1,5 +1,4 @@
 # Infant Neurodevelopmental Subtypes Dashboard
-Added new changes
 # Interactive Visualization of EEG Data Predicting Language Outcomes
 ![Infant Neurodevelopmental Subtypes Dashboard](./images/infant_neurodevelopmental_subtypes_dashboard.png)
 

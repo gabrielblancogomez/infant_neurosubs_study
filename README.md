@@ -1,7 +1,6 @@
 # Infant Neurodevelopmental Subtypes Dashboard
 # Interactive Visualization of EEG Data Predicting Language Outcomes
-![Infant Neurodevelopmental Subtypes Dashboard](./images/infant_neurodevelopmental_subtypes_dashboard.png)
-
+ 
 ## Table of Contents
 - [Overview](#overview)
 - [Key Features](#key-features)

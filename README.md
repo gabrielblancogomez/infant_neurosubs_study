@@ -1,7 +1,11 @@
 # Infant Neurodevelopmental Subtypes Dashboard
 # Interactive Visualization of EEG Data Predicting Language Outcomes
+<<<<<<< HEAD
 ![Infant Neurodevelopmental Subtypes Dashboard](./images/infant_neurodevelopmental_subtypes_dashboard.png)
 
+=======
+ 
+>>>>>>> 9b6f6df8e8511283e8743c5ff144eea53944c78a
 ## Table of Contents
 - [Overview](#overview)
 - [Key Features](#key-features)
@@ -50,10 +54,19 @@ The dashboard visualizes research data collected from 144 infants (52.8% male, 4
 - CSS styles are embedded in the HTML file for simplified distribution
 
 ## Acknowledgments
+<<<<<<< HEAD
 This project visualizes research on early neural and behavioral markers of language development in infancy, combining EEG analysis with longitudinal language assessments to identify meaningful developmental subtypes.
+=======
+This project visualizes research on early neural and behavioral markers of language development in infancy, combining EEG analysis with longitudinal language assessments to identify meaningful developmental subtypes. This was also made with susbtanttial help of Claude Sonnet 3.7 and ChatGPT
+>>>>>>> 9b6f6df8e8511283e8743c5ff144eea53944c78a
 
 ## Contact
 For questions about the research data or visualization implementation, please create an issue in this repository.
 
 ## License
+<<<<<<< HEAD
 © 2024 All Rights Reserved
+=======
+© 2024 All Rights Reserved# infant_neurosubs_dashboard
+Interactive Dashboard to see results from paper
+>>>>>>> 9b6f6df8e8511283e8743c5ff144eea53944c78a
